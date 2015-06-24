@@ -54,7 +54,9 @@
 
 import os, re, sys, time, datetime, copy
 import pandas
-from pattern.web import URL, extension, cache
+# from pattern.web import URL, extension, cache
+import requests
+
 
  
 class YFinanceDataExtr(object):
@@ -93,7 +95,7 @@ class YFinanceDataExtr(object):
         self.properties_excel_table = r'C:\pythonuserfiles\yahoo_finance_data_extract\Individual_stock_query_property.xls'
 
         # Output storage
-        self.cur_quotes_csvfile = r'c:\data\temp\stock_data.csv'
+        self.cur_quotes_csvfile = r'stock_data.csv'
         self.cur_quotes_df = object()
 
         ## !!!
@@ -232,10 +234,10 @@ class YFinanceDataExtr(object):
     def downloading_csv(self, url_address):
         """ Download the csv information from the url_address given.
         """
-        cache.clear()
-        url = URL(url_address)
+        # cache.clear()
+        url = requests.get(url_address)
         f = open(self.cur_quotes_csvfile, 'wb') # save as test.gif
-        f.write(url.download())
+        f.write(url.content)
         f.close()
 
     def cur_quotes_create_dataframe(self):
@@ -252,7 +254,7 @@ class YFinanceDataExtr(object):
             Formed the url, download the csv, put in the header. Have a dataframe object.
         """
         self.form_url_str()
-        if self.__print_url: print self.cur_quotes_full_url
+        if self.__print_url: print(self.cur_quotes_full_url)
         self.downloading_csv(self.cur_quotes_full_url)
         self.cur_quotes_create_dataframe()
 
@@ -285,7 +287,7 @@ class YFinanceDataExtr(object):
         ## Remove the % symbol fr self.temp_full_data_df columns
         self.rm_percent_symbol_fr_cols()
 
-        print 'Done\n'
+        print('Done\n')
 
     def rm_percent_symbol_fr_cols(self):
         """ Remove the % symbol from those columns that have this symbol.
@@ -325,7 +327,7 @@ class YFinanceDataExtr(object):
 
 if __name__ == '__main__':
     
-    print "start processing"
+    print("start processing")
     
     choice = 1
 
@@ -342,7 +344,7 @@ if __name__ == '__main__':
         ##comment below if running the full list.
         data_ext.set_full_stocklist_to_retrieve(['S58','J69U'])
         data_ext.get_cur_quotes_fr_list()
-        print data_ext.temp_full_data_df
+        print(data_ext.temp_full_data_df)
         #data_ext.temp_full_data_df.to_csv(r'c:\data\temp\temp_stockdata.csv', index = False)
 
     if choice == 2:
@@ -352,10 +354,10 @@ if __name__ == '__main__':
     if choice == 3:
         counter = 0
         for n in data_ext.store_individual_set_df:
-            print counter
+            print(counter)
             counter = counter +1
-            print n[n.columns[:4]].head()
-            print '---'
+            print(n[n.columns[:4]].head())
+            print('---')
 
     if choice == 4:
         """ Use this to pull the global indices
@@ -368,11 +370,11 @@ if __name__ == '__main__':
         data_ext.enable_form_properties_fr_exceltable = 0 
         data_ext.set_full_stocklist_to_retrieve(['%5EVIX','%5EGSPC','%5ESTI','%5EDJI','%5EIXIC','%5EHSI','%5EN225'])
         data_ext.set_quotes_properties('nsl1op2kj')
-        print data_ext.cur_quotes_property_portion_url 
+        print(data_ext.cur_quotes_property_portion_url)
         data_ext.set_column_headers(['NAME', 'SYMBOL', 'LATEST_PRICE', 'OPEN','ChangeInPercent', 'YEAR_HIGH','YEAR_LOW'])
-        print data_ext.cur_quotes_parm_headers
+        print(data_ext.cur_quotes_parm_headers)
         data_ext.get_cur_quotes_fr_list()
-        print data_ext.temp_full_data_df
+        print(data_ext.temp_full_data_df)
 
 
 

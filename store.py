@@ -1,7 +1,7 @@
 import re, sys, os, time, datetime, csv
 import pandas
 import sqlite3 as lite
-from yahoo import YFHistDataExtr
+from yahoo import yahoo_finance_data_extract
 from yahoo import YComDataExtr #use for fast retrieval of data.
  
 class FinanceDataStore(object):
