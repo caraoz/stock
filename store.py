@@ -1,8 +1,8 @@
 import re, sys, os, time, datetime, csv
 import pandas
 import sqlite3 as lite
-from yahoo_finance_historical_data_extract import YFHistDataExtr
-from Yahoo_finance_YQL_company_data import YComDataExtr #use for fast retrieval of data.
+from yahoo import YFHistDataExtr
+from yahoo import YComDataExtr #use for fast retrieval of data.
  
 class FinanceDataStore(object):
     """ For storing and retrieving stocks data from database.
@@ -60,7 +60,7 @@ class FinanceDataStore(object):
         histdata_extr.enable_save_raw_file = 0
  
         for sub_list in self.break_list_to_sub_list(stock_sym_list):
-            print 'processing sub list', sub_list
+            print('processing sub list' + ' ' + sub_list)
             histdata_extr.set_multiple_stock_list(sub_list)
             histdata_extr.get_hist_data_of_all_target_stocks()
             histdata_extr.removed_zero_vol_fr_dataset()
