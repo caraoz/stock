@@ -53,9 +53,10 @@
 
 import os, sys, re, datetime
 import pandas
-from pattern.web import URL, extension, cache
+# from pattern.web import URL, extension, cache
 import simplejson as json
 from yahoo_finance_data_extract import YFinanceDataExtr
+import requests
 
 
 class YComDataExtr(YFinanceDataExtr):
@@ -106,7 +107,7 @@ class YComDataExtr(YFinanceDataExtr):
         self.__print_url = 0
 
         ## Save json file
-        self.saved_json_file = r'c:\data\temptryyql.json'
+        self.saved_json_file = r'temptryyql.json'
 
         ## Temp Results storage
         self.datatype_com_data_allstock_list = list() # list of dict where each dict is company info for each stock
@@ -175,7 +176,7 @@ class YComDataExtr(YFinanceDataExtr):
             Formed the url, download the csv, put in the header. Have a dataframe object.
         """
         self.form_url_str()
-        if self.__print_url: print self.com_data_full_url
+        if self.__print_url: prin(self.com_data_full_url)
         self.download_json()
         self.get_datalist_fr_json()
 
@@ -199,7 +200,7 @@ class YComDataExtr(YFinanceDataExtr):
         self.datatype_com_data_allstock_df = pandas.DataFrame(self.datatype_com_data_allstock_list)
         self.datatype_com_data_allstock_df.rename(columns ={'symbol':'SYMBOL'}, inplace=True)
         
-        print 'Done\n'
+        print('Done\n')
 
     def download_json(self):
         """ Download the json file from the self.com_data_full_url.
@@ -207,14 +208,11 @@ class YComDataExtr(YFinanceDataExtr):
             Need take care of Exceptions
 
         """
-        cache.clear()
-        url = URL(self.com_data_full_url)
+        # cache.clear()
+        url = requests.get(self.com_data_full_url)
         f = open(self.saved_json_file, 'wb') # save as test.gif
-        try:
-            str = url.download(timeout = 50)
-        except:
-            str = ''
-        f.write(str) #increse the time out time for this
+
+        f.write(url.content) #increse the time out time for this
         f.close()
 
     def get_datalist_fr_json(self):
@@ -233,11 +231,11 @@ class YComDataExtr(YFinanceDataExtr):
                 #for single data
                 continue # temp do not use
             for parameters in indivdual_set.keys():
-                if type(indivdual_set[parameters]) == str or type(indivdual_set[parameters]) == unicode:
+                if type(indivdual_set[parameters]) == 'str' or type(indivdual_set[parameters]) == 'unicode':
                     try:
                         temp_dict_data[parameters] = indivdual_set[parameters]#for symbol
                     except:
-                        print 'not working', parameters
+                        print('not working'+ ' ' + parameters)
                 elif type(indivdual_set[parameters]) == dict:
                     if indivdual_set[parameters].has_key('content'):
                         temp_dict_data[parameters] = indivdual_set[parameters]['content']
@@ -264,7 +262,7 @@ class YComDataExtr(YFinanceDataExtr):
         self.com_data_allstock_df = pandas.DataFrame()
         
         for datatype in self.datatype_url_dict.keys():
-            print "Processing datatype: ", datatype
+            print("Processing datatype: " + ' ' + datatype)
             ## reset all temp storage
             self.datatype_com_data_allstock_list =[]
             self.datatype_com_data_allstock_df = object()
@@ -273,16 +271,17 @@ class YComDataExtr(YFinanceDataExtr):
             self.retrieve_datatype_results(datatype)
     
             ## join the tables
-            if len(self.com_data_allstock_df) == 0:
-                self.com_data_allstock_df = self.datatype_com_data_allstock_df.copy(True)
-            else:
-                self.com_data_allstock_df = pandas.merge(self.com_data_allstock_df,self.datatype_com_data_allstock_df, on= 'SYMBOL' )
+            # if len(self.com_data_allstock_df) == 0:
+            #     self.com_data_allstock_df = self.datatype_com_data_allstock_df.copy(True)
+            # else:
+            #     print(self.datatype_com_data_allstock_df)
+#                self.com_data_allstock_df = pandas.merge(self.com_data_allstock_df,self.datatype_com_data_allstock_df, on= 'SYMBOL' )
 
         ## Remove percentage from columns
         try:
             self.rm_percent_symbol_fr_cols()
         except:
-            print 'some columns are missing for stripping percentage'
+            print('some columns are missing for stripping percentage')
                 
     def rm_percent_symbol_fr_cols(self):
         """ Remove the % symbol from those columns that have this symbol.
@@ -331,7 +330,7 @@ class YComDataExtr(YFinanceDataExtr):
         # Add in year
         self.datatype_com_data_allstock_df['Year'] = self.datatype_com_data_allstock_df['Date'].map(lambda x: x[:4])
         
-        print 'Done\n'
+        print('Done\n')
 
     def set_hist_data_num_day_fr_current(self, num_days):
         """ Set the num of days from current date to get the historical price data.
@@ -375,19 +374,19 @@ class YComDataExtr(YFinanceDataExtr):
 
 if __name__ == '__main__':
     
-    print "start processing"
+    print("start processing")
     
     choice = 3       
 
     if choice == 1:
         """try the download format of  YQL"""
         url_address = 'https://query.yahooapis.com/v1/public/yql?q=SELECT%20*%20FROM%20yahoo.finance.keystats%20WHERE%20symbol%3D%27BN4.SI%27&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback='
-        savefile = r'c:\data\temptryyql.json'
+        savefile = r'temptryyql.json'
 
-        cache.clear()
-        url = URL(url_address)
+        #cache.clear()
+        url = requests.get(url_address)
         f = open(savefile, 'wb') # save as test.gif
-        f.write(url.download())
+        f.write(url.content)
         f.close()
 
     if choice == 2:
@@ -395,8 +394,8 @@ if __name__ == '__main__':
             how to include the multiple keys per --> use  w['query']['results']['stats'].keys()
         """
        
-        savefile = r'c:\data\temptryyql.json'
-        w  = json.load(open(r'c:\data\temptryyql.json', 'r'))
+        savefile = r'temptryyql.json'
+        w  = json.load(open(r'temptryyql.json', 'r'))
         com_data_stock_list = list()
         for indivdual_set in  w['query']['results']['stats']:
             temp_dict_data = {}
@@ -426,14 +425,14 @@ if __name__ == '__main__':
 ##        w.full_stocklist_to_retrieve  = chunk_of_list[0][:3]
         w.retrieve_all_results()
          
-        print w.com_data_allstock_df
+        print(w.com_data_allstock_df)
         ##
         ##full_stock_data_df = pandas.merge(full_stock_data_df, w.com_data_allstock_df, on= 'SYMBOL')
 
         #full_stock_data_df.to_csv(file, index = False)
 
     if choice ==4:
-        file = r'c:\data\temp\temp_stockdata.csv'
+        file = r'temp_stockdata.csv'
         full_stock_data_df = pandas.read_csv(file)
         
     if choice ==5:
@@ -448,7 +447,7 @@ if __name__ == '__main__':
         w = YComDataExtr()
         w.set_full_stocklist_to_retrieve(list(full_stock_data_df['SYMBOL'])[:10])
         w.get_all_hist_data()
-        print w.datatype_com_data_allstock_df.head()
+        print(w.datatype_com_data_allstock_df.head())
 
         # should add the year column
 
